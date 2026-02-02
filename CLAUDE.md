@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Interactive 3D snow diorama built with React Three Fiber. An isometric terrain block with a log cabin on a snowy hill, pine trees, rocks, and falling snow — viewable as a rotating turntable.
+Interactive 3D snow diorama built with React Three Fiber. An isometric terrain block with a bench and lightpost on a gentle snowy hill, surrounded by pine trees, rocks, and falling snow — viewable as a rotating turntable. Cinematic lighting with warm lantern glow vs cold winter atmosphere.
 
 - **Repository:** andrew-game-test-r3f
 - **Primary Branch:** main
@@ -33,9 +33,8 @@ src/
 ├── components/
 │   ├── Scene.tsx               # Scene orchestrator
 │   ├── DioramaBase.tsx         # Terrain block (snow top + stone sides + hill)
-│   ├── Cabin.tsx               # Modular log cabin from Kenney pieces
-│   ├── SceneProps.tsx          # Trees, rocks, snowman, sled, bench, etc.
-│   ├── SnowParticles.tsx       # Falling snow + chimney smoke particles
+│   ├── SceneProps.tsx          # Bench, lantern, trees, rocks, snow piles
+│   ├── SnowParticles.tsx       # Falling snow particle system
 │   ├── Lighting.tsx            # Ambient, directional, point lights w/ flicker
 │   ├── PostProcessing.tsx      # Bloom, vignette, grain, DOF, SMAA
 │   ├── Controls.tsx            # OrbitControls turntable
@@ -59,11 +58,12 @@ Custom `BufferGeometry` with gaussian hill displacement on top surface. Multi-ma
 ### Scene Props
 Each prop auto-adjusts its Y position using `getHillHeight()` to sit correctly on the terrain surface. Uses `<Clone>` from drei for proper model instancing with preserved textures.
 
-### Lighting
-- Cool blue ambient + hemisphere light for winter atmosphere
-- Warm orange point lights from cabin/lanterns with subtle sine-wave flickering
-- Directional shadow-casting sun light
-- Environment map (IBL) from drei for subtle reflections
+### Lighting (Cinematic warm/cold contrast)
+- Cool blue ambient + hemisphere light for cold winter atmosphere
+- Warm orange point light from lantern (hero light) with subtle sine-wave flickering
+- Directional shadow-casting sun light (warm white, moderate intensity)
+- Cool fill light from opposite direction
+- Environment map (IBL) from drei preset "dawn" for subtle reflections
 - ContactShadows for soft ground shadows
 
 ### Post-Processing Pipeline
@@ -136,3 +136,33 @@ The `Skills/` folder contains skill guides for Claude that teach best practices:
 - Traverse loaded scenes to set castShadow/receiveShadow on meshes (r3f-loaders skill)
 - Reduce bloom intensity, ensure DOF focus is calibrated (r3f-postprocessing skill)
 - Premium frontend skill: "The key is intentionality, not intensity"
+
+### Iteration 2 — Applied Skills Fixes (Still Monochrome)
+
+**What was fixed:** Switched to `<Clone>` from drei, added shadow traversal, reduced lighting intensity, added `<Environment>` IBL and `<ContactShadows>`, added `<N8AO>`, tuned bloom/DOF thresholds.
+
+**What was still wrong:** All models still rendered monochrome white/lavender. The cabin assembly was still broken.
+
+**Root cause discovered:** The `Textures/colormap.png` file was **NOT tracked in git**. All Kenney GLB files (8KB each) reference this external texture via `"uri":"Textures/colormap.png"` — they do NOT embed it. Without this single 512×512 palette PNG, every model's `baseColorFactor` of `[1,1,1,1]` renders as pure white. The lavender tint came from blue ambient/hemisphere lighting on white surfaces.
+
+**Key technical findings:**
+- Kenney holiday kit GLB files use external texture references (not embedded)
+- All models share a single `colormap.png` texture via UV-mapped palette lookups
+- Models are fully diffuse: `metallic=0`, `roughness=1`, no normal/occlusion maps
+- The `KHR_texture_transform` extension is declared but only sets `texCoord: 0`
+- Colormap contains distinct color regions: brown wood, green foliage, grey stone, orange accents, white snow
+
+### Iteration 3 — Scene Redesign
+
+**User direction:** Drop the cabin (modular assembly too unreliable). Use only whole/standalone models. New scene = bench in center, standing lantern (lightpost) beside it, snowy trees in a ring, cinematic lighting.
+
+**Changes made:**
+1. Committed `Textures/colormap.png` to git (root cause fix)
+2. Deleted `Cabin.tsx` entirely — no modular assembly
+3. Rewrote `SceneProps.tsx` — bench + lantern at center, 8 trees in inner/outer rings, rocks + snow piles as accents
+4. Centered the hill at `(0,0)` instead of `(0,-1.2)`, reduced height from 0.8→0.4
+5. Cinematic lighting: dimmer ambient, warm lantern as hero light source, cool fill
+6. Tuned post-processing: stronger AO, bloom catching lantern glow, tilt-shift DOF
+7. Removed chimney smoke from snow particles
+
+**Design principle:** Only use whole/standalone models that don't require assembly. Keep the scene simple and focused.
