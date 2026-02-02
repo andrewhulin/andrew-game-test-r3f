@@ -1,41 +1,39 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
+import { Environment, ContactShadows } from '@react-three/drei'
 import * as THREE from 'three'
 import { COLORS } from '../utils/constants'
 
 export function Lighting() {
-  const lantern1Ref = useRef<THREE.PointLight>(null)
-  const lantern2Ref = useRef<THREE.PointLight>(null)
   const cabinLightRef = useRef<THREE.PointLight>(null)
+  const lanternRef = useRef<THREE.PointLight>(null)
 
   // Subtle flickering for warm lights
   useFrame((state) => {
     const t = state.clock.elapsedTime
-    const flicker1 = 1 + Math.sin(t * 3.2) * 0.08 + Math.sin(t * 7.1) * 0.04
-    const flicker2 = 1 + Math.sin(t * 2.8 + 1) * 0.08 + Math.sin(t * 6.3 + 2) * 0.04
-    const flickerCabin = 1 + Math.sin(t * 2.1) * 0.06 + Math.sin(t * 5.5 + 0.5) * 0.03
+    const flickerCabin = 1 + Math.sin(t * 2.1) * 0.05 + Math.sin(t * 5.5 + 0.5) * 0.02
+    const flickerLantern = 1 + Math.sin(t * 3.2) * 0.06 + Math.sin(t * 7.1) * 0.03
 
-    if (lantern1Ref.current) lantern1Ref.current.intensity = 1.5 * flicker1
-    if (lantern2Ref.current) lantern2Ref.current.intensity = 1.5 * flicker2
-    if (cabinLightRef.current) cabinLightRef.current.intensity = 2.5 * flickerCabin
+    if (cabinLightRef.current) cabinLightRef.current.intensity = 0.8 * flickerCabin
+    if (lanternRef.current) lanternRef.current.intensity = 0.5 * flickerLantern
   })
 
   return (
     <>
-      {/* Cool blue winter ambient */}
-      <ambientLight intensity={0.35} color={COLORS.ambientLight} />
+      {/* Cool blue winter ambient - gentle fill */}
+      <ambientLight intensity={0.4} color={COLORS.ambientLight} />
 
       {/* Hemisphere: cool sky + warm ground bounce */}
       <hemisphereLight
         color={COLORS.skyColor}
         groundColor={COLORS.groundColor}
-        intensity={0.4}
+        intensity={0.5}
       />
 
       {/* Main sun/overcast directional light */}
       <directionalLight
         position={[5, 8, 3]}
-        intensity={1.0}
+        intensity={1.2}
         color={COLORS.sunLight}
         castShadow
         shadow-mapSize-width={2048}
@@ -46,45 +44,48 @@ export function Lighting() {
         shadow-camera-bottom={-5}
         shadow-camera-near={0.5}
         shadow-camera-far={20}
-        shadow-bias={-0.001}
+        shadow-bias={-0.0005}
+        shadow-normalBias={0.02}
       />
 
-      {/* Fill light from opposite side */}
+      {/* Softer fill light from opposite side */}
       <directionalLight
         position={[-3, 4, -2]}
-        intensity={0.2}
+        intensity={0.3}
         color="#aabbdd"
       />
 
-      {/* Warm cabin window glow */}
+      {/* Warm cabin window glow - REDUCED intensity */}
       <pointLight
         ref={cabinLightRef}
-        position={[0, 1.2, -1.0]}
-        intensity={2.5}
+        position={[0, 0.8, -0.6]}
+        intensity={0.8}
         color={COLORS.warmGlow}
         distance={4}
         decay={2}
-        castShadow
       />
 
-      {/* Lantern 1 - left side */}
+      {/* Lantern warm light */}
       <pointLight
-        ref={lantern1Ref}
-        position={[-1, 0.5, -0.5]}
-        intensity={1.5}
+        ref={lanternRef}
+        position={[-0.8, 0.6, -0.3]}
+        intensity={0.5}
         color={COLORS.lanternGlow}
         distance={3}
         decay={2}
       />
 
-      {/* Lantern 2 - cabin side */}
-      <pointLight
-        ref={lantern2Ref}
-        position={[0.3, 1.3, -1.6]}
-        intensity={1.5}
-        color={COLORS.lanternGlow}
-        distance={3}
-        decay={2}
+      {/* Environment map for IBL reflections - subtle outdoor lighting */}
+      <Environment preset="dawn" background={false} environmentIntensity={0.3} />
+
+      {/* Contact shadows for grounding objects */}
+      <ContactShadows
+        position={[0, -0.01, 0]}
+        opacity={0.4}
+        scale={12}
+        blur={2.5}
+        far={4}
+        color="#2a3040"
       />
     </>
   )
