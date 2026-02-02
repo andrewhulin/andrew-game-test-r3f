@@ -4,16 +4,16 @@ export const DIORAMA = {
   width: 6,
   depth: 6,
   height: 2,
-  hillHeight: 0.8,
+  hillHeight: 0.4,
   hillCenterX: 0,
-  hillCenterZ: -1.2,
-  hillSigma: 1.8,
+  hillCenterZ: 0,
+  hillSigma: 2.2,
 }
 
 export const COLORS = {
   snowTop: '#f0f4f8',
-  stoneSide: '#7a7068',
-  stoneBottom: '#3d3530',
+  stoneSide: '#9a9088',
+  stoneBottom: '#5a504a',
   ambientLight: '#b4c6e7',
   sunLight: '#fff5e6',
   warmGlow: '#ff9944',

@@ -1,5 +1,4 @@
 import { DioramaBase } from './DioramaBase'
-import { Cabin } from './Cabin'
 import { SceneProps } from './SceneProps'
 import { SnowParticles } from './SnowParticles'
 import { Lighting } from './Lighting'
@@ -14,10 +13,8 @@ export function Scene() {
       <Lighting />
       <Controls />
 
-      {/* Diorama group - everything that rotates together */}
       <group>
         <DioramaBase />
-        <Cabin />
         <SceneProps />
         <SnowParticles />
       </group>

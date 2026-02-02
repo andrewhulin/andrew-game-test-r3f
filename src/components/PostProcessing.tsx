@@ -5,31 +5,37 @@ import {
   Noise,
   DepthOfField,
   SMAA,
+  N8AO,
+  BrightnessContrast,
+  HueSaturation,
 } from '@react-three/postprocessing'
 
 export function PostProcessing() {
   return (
     <EffectComposer>
-      {/* Bloom for warm light glow */}
+      {/* Ambient occlusion — depth and grounding */}
+      <N8AO aoRadius={0.5} intensity={1.5} distanceFalloff={0.5} quality="medium" />
+
+      {/* Bloom — catches the emissive lantern glow orb */}
       <Bloom
-        intensity={0.4}
-        luminanceThreshold={0.8}
+        intensity={0.6}
+        luminanceThreshold={0.7}
         luminanceSmoothing={0.9}
         mipmapBlur
       />
 
-      {/* Tilt-shift depth of field for miniature/diorama feel */}
-      <DepthOfField
-        focusDistance={0.012}
-        focalLength={0.04}
-        bokehScale={2.5}
-      />
+      {/* Tilt-shift DOF — miniature diorama feel */}
+      <DepthOfField focusDistance={0.02} focalLength={0.05} bokehScale={3.5} />
 
-      {/* Film grain for handcrafted feel */}
-      <Noise opacity={0.05} />
+      {/* Subtle color grading */}
+      <BrightnessContrast brightness={0} contrast={0.08} />
+      <HueSaturation hue={0} saturation={0.05} />
 
-      {/* Vignette for focus framing */}
-      <Vignette offset={0.3} darkness={0.5} />
+      {/* Film grain */}
+      <Noise opacity={0.04} />
+
+      {/* Vignette framing */}
+      <Vignette offset={0.3} darkness={0.55} />
 
       {/* Anti-aliasing */}
       <SMAA />

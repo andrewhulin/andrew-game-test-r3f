@@ -1,90 +1,69 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
+import { Environment, ContactShadows } from '@react-three/drei'
 import * as THREE from 'three'
-import { COLORS } from '../utils/constants'
 
 export function Lighting() {
-  const lantern1Ref = useRef<THREE.PointLight>(null)
-  const lantern2Ref = useRef<THREE.PointLight>(null)
-  const cabinLightRef = useRef<THREE.PointLight>(null)
+  const lanternRef = useRef<THREE.PointLight>(null)
 
-  // Subtle flickering for warm lights
   useFrame((state) => {
     const t = state.clock.elapsedTime
-    const flicker1 = 1 + Math.sin(t * 3.2) * 0.08 + Math.sin(t * 7.1) * 0.04
-    const flicker2 = 1 + Math.sin(t * 2.8 + 1) * 0.08 + Math.sin(t * 6.3 + 2) * 0.04
-    const flickerCabin = 1 + Math.sin(t * 2.1) * 0.06 + Math.sin(t * 5.5 + 0.5) * 0.03
-
-    if (lantern1Ref.current) lantern1Ref.current.intensity = 1.5 * flicker1
-    if (lantern2Ref.current) lantern2Ref.current.intensity = 1.5 * flicker2
-    if (cabinLightRef.current) cabinLightRef.current.intensity = 2.5 * flickerCabin
+    const flicker = 1 + Math.sin(t * 2.1) * 0.06 + Math.sin(t * 5.5 + 0.5) * 0.03
+    if (lanternRef.current) lanternRef.current.intensity = 3.0 * flicker
   })
 
   return (
     <>
-      {/* Cool blue winter ambient */}
-      <ambientLight intensity={0.35} color={COLORS.ambientLight} />
+      {/* Low ambient — let key light create drama */}
+      <ambientLight intensity={0.15} color="#8aa4cc" />
+      <hemisphereLight color="#9ab4d4" groundColor="#544535" intensity={0.2} />
 
-      {/* Hemisphere: cool sky + warm ground bounce */}
-      <hemisphereLight
-        color={COLORS.skyColor}
-        groundColor={COLORS.groundColor}
-        intensity={0.4}
-      />
-
-      {/* Main sun/overcast directional light */}
+      {/* KEY LIGHT: warm overcast sun */}
       <directionalLight
-        position={[5, 8, 3]}
+        position={[4, 8, 3]}
         intensity={1.0}
-        color={COLORS.sunLight}
+        color="#fff5e6"
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
-        shadow-camera-left={-5}
-        shadow-camera-right={5}
-        shadow-camera-top={5}
-        shadow-camera-bottom={-5}
+        shadow-camera-left={-4}
+        shadow-camera-right={4}
+        shadow-camera-top={4}
+        shadow-camera-bottom={-4}
         shadow-camera-near={0.5}
         shadow-camera-far={20}
-        shadow-bias={-0.001}
+        shadow-bias={-0.0003}
+        shadow-normalBias={0.02}
       />
 
-      {/* Fill light from opposite side */}
-      <directionalLight
-        position={[-3, 4, -2]}
-        intensity={0.2}
-        color="#aabbdd"
-      />
+      {/* FILL LIGHT: cool from opposite side */}
+      <directionalLight position={[-3, 4, -2]} intensity={0.15} color="#8899bb" />
 
-      {/* Warm cabin window glow */}
+      {/* RIM/BACK LIGHT: depth separation */}
+      <directionalLight position={[-2, 6, -5]} intensity={0.25} color="#aabbdd" />
+
+      {/* HERO: Warm lantern glow — strong pool of light */}
       <pointLight
-        ref={cabinLightRef}
-        position={[0, 1.2, -1.0]}
-        intensity={2.5}
-        color={COLORS.warmGlow}
-        distance={4}
-        decay={2}
-        castShadow
-      />
-
-      {/* Lantern 1 - left side */}
-      <pointLight
-        ref={lantern1Ref}
-        position={[-1, 0.5, -0.5]}
-        intensity={1.5}
-        color={COLORS.lanternGlow}
-        distance={3}
+        ref={lanternRef}
+        position={[0.8, 1.4, -0.3]}
+        intensity={3.0}
+        color="#ffaa55"
+        distance={6}
         decay={2}
       />
 
-      {/* Lantern 2 - cabin side */}
-      <pointLight
-        ref={lantern2Ref}
-        position={[0.3, 1.3, -1.6]}
-        intensity={1.5}
-        color={COLORS.lanternGlow}
-        distance={3}
-        decay={2}
+      {/* IBL via preset — Lightformers caused rendering artifacts */}
+      <Environment preset="dawn" background={false} environmentIntensity={0.15} />
+
+      {/* Ground shadows — sized to match diorama */}
+      <ContactShadows
+        position={[0, 0.01, 0]}
+        opacity={0.6}
+        scale={7}
+        blur={2}
+        far={4}
+        resolution={512}
+        color="#1a2030"
       />
     </>
   )
