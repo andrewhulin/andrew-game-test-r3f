@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Environment, ContactShadows } from '@react-three/drei'
+import { Environment, Lightformer, ContactShadows, SoftShadows } from '@react-three/drei'
 import * as THREE from 'three'
 
 export function Lighting() {
@@ -8,64 +8,82 @@ export function Lighting() {
 
   useFrame((state) => {
     const t = state.clock.elapsedTime
-    const flicker = 1 + Math.sin(t * 2.1) * 0.04 + Math.sin(t * 5.5 + 0.5) * 0.02
-    if (lanternRef.current) lanternRef.current.intensity = 1.5 * flicker
+    const flicker = 1 + Math.sin(t * 2.1) * 0.06 + Math.sin(t * 5.5 + 0.5) * 0.03
+    if (lanternRef.current) lanternRef.current.intensity = 3.0 * flicker
   })
 
   return (
     <>
-      {/* Cool blue winter ambient — dim for drama */}
-      <ambientLight intensity={0.25} color="#8aa4cc" />
+      <SoftShadows size={10} samples={16} focus={0.5} />
 
-      {/* Sky-to-ground gradient */}
-      <hemisphereLight color="#9ab4d4" groundColor="#544535" intensity={0.3} />
+      {/* Very low ambient — let key light create drama */}
+      <ambientLight intensity={0.12} color="#8aa4cc" />
+      <hemisphereLight color="#9ab4d4" groundColor="#544535" intensity={0.15} />
 
-      {/* Main directional sun */}
+      {/* KEY LIGHT: warm overcast sun */}
       <directionalLight
         position={[4, 8, 3]}
-        intensity={0.8}
+        intensity={1.0}
         color="#fff5e6"
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
-        shadow-camera-left={-5}
-        shadow-camera-right={5}
-        shadow-camera-top={5}
-        shadow-camera-bottom={-5}
+        shadow-camera-left={-4}
+        shadow-camera-right={4}
+        shadow-camera-top={4}
+        shadow-camera-bottom={-4}
         shadow-camera-near={0.5}
         shadow-camera-far={20}
-        shadow-bias={-0.0005}
+        shadow-bias={-0.0003}
         shadow-normalBias={0.02}
       />
 
-      {/* Cool fill from opposite side */}
-      <directionalLight
-        position={[-3, 4, -2]}
-        intensity={0.15}
-        color="#8899bb"
-      />
+      {/* FILL LIGHT: cool from opposite side */}
+      <directionalLight position={[-3, 4, -2]} intensity={0.15} color="#8899bb" />
 
-      {/* HERO: Warm lantern glow — the cinematic focal light */}
+      {/* RIM/BACK LIGHT: depth separation */}
+      <directionalLight position={[-2, 6, -5]} intensity={0.25} color="#aabbdd" />
+
+      {/* HERO: Warm lantern glow — strong pool of light */}
       <pointLight
         ref={lanternRef}
-        position={[0.8, 1.2, -0.3]}
-        intensity={1.5}
+        position={[0.8, 1.4, -0.3]}
+        intensity={3.0}
         color="#ffaa55"
-        distance={5}
+        distance={6}
         decay={2}
       />
 
-      {/* Subtle IBL for ambient reflections */}
-      <Environment preset="dawn" background={false} environmentIntensity={0.2} />
+      {/* Custom IBL with Lightformers instead of preset */}
+      <Environment resolution={256} background={false}>
+        {/* Soft cool overhead — simulates overcast sky */}
+        <Lightformer
+          form="rect"
+          intensity={0.8}
+          color="#c4d4f0"
+          scale={[10, 4, 1]}
+          position={[0, 8, 0]}
+          rotation={[-Math.PI / 2, 0, 0]}
+        />
+        {/* Cool side fill */}
+        <Lightformer
+          form="rect"
+          intensity={0.3}
+          color="#8899bb"
+          scale={[5, 3, 1]}
+          position={[-6, 3, 0]}
+        />
+      </Environment>
 
-      {/* Soft ground shadows */}
+      {/* Ground shadows — sized to match diorama */}
       <ContactShadows
-        position={[0, -0.01, 0]}
-        opacity={0.5}
-        scale={12}
-        blur={2.5}
+        position={[0, 0.01, 0]}
+        opacity={0.6}
+        scale={7}
+        blur={2}
         far={4}
-        color="#2a3040"
+        resolution={512}
+        color="#1a2030"
       />
     </>
   )

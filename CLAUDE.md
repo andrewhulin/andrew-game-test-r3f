@@ -166,3 +166,31 @@ The `Skills/` folder contains skill guides for Claude that teach best practices:
 7. Removed chimney smoke from snow particles
 
 **Design principle:** Only use whole/standalone models that don't require assembly. Keep the scene simple and focused.
+
+### Iteration 4 — Cinematic Lighting Overhaul
+
+**Problems identified from screenshot:**
+- Scene too flat — ambient (0.25) + hemisphere (0.3) filled in all shadows, killed contrast
+- Snow surface lavender-tinted from blue ambient on white surfaces
+- Lantern glow barely visible — point light too weak and bloom couldn't catch it
+- ContactShadows plane extended beyond diorama edges (scale=12 on 6×6 base)
+- Environment "dawn" preset added too much flat fill, washing out contrast
+
+**Key lighting skill learnings applied:**
+- **Three-point lighting** (key + fill + rim/back) is the cinematic standard
+- **SoftShadows** from drei enables PCF soft shadow edges
+- **Lightformer** inside `<Environment>` gives precise IBL control vs presets
+- **Bloom needs emissive geometry** — Kenney models have no emissive properties (metallic=0, roughness=1). Added a small `meshStandardMaterial` sphere with `emissive="#ffaa44"` + `emissiveIntensity={8}` + `toneMapped={false}` at the lantern lamp head. This is the only way for bloom to create a visible warm halo.
+- **BrightnessContrast** and **HueSaturation** effects for subtle color grading
+
+**Changes made:**
+1. Reduced ambient from 0.25→0.12, hemisphere from 0.3→0.15 (less fill = more drama)
+2. Three-point setup: key directional (1.0), cool fill (0.15), rim/back light (0.25)
+3. Added `<SoftShadows>` for softer shadow edges
+4. Doubled lantern point light intensity from 1.5→3.0 with subtle flicker
+5. Replaced Environment preset with custom `<Lightformer>` rectangles (overhead cool + side fill)
+6. Fixed ContactShadows: scale 12→7, resolution 256→512
+7. Added emissive glow sphere at lantern lamp position for bloom
+8. Lowered bloom threshold from 0.85→0.7, increased intensity 0.4→0.6
+9. Added BrightnessContrast (+0.08 contrast) and HueSaturation (+0.05 saturation)
+10. Increased DOF bokehScale from 3→3.5, N8AO quality to "medium"

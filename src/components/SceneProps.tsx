@@ -38,11 +38,27 @@ function Prop({ name, position, rotation, scale }: {
 }
 
 export function SceneProps() {
+  const lanternX = 0.8
+  const lanternZ = -0.3
+  const lanternHillY = getHillHeight(lanternX, lanternZ)
+
   return (
     <group>
       {/* === Center focal point === */}
       <Prop name="bench" position={[0, 0, 0]} rotation={[0, Math.PI / 6, 0]} />
-      <Prop name="lantern" position={[0.8, 0, -0.3]} />
+      <Prop name="lantern" position={[lanternX, 0, lanternZ]} />
+
+      {/* Emissive glow orb at lantern lamp head — gives bloom something to catch */}
+      <mesh position={[lanternX, lanternHillY + 0.95, lanternZ]}>
+        <sphereGeometry args={[0.08, 8, 8]} />
+        <meshStandardMaterial
+          emissive="#ffaa44"
+          emissiveIntensity={8}
+          toneMapped={false}
+          transparent
+          opacity={0.9}
+        />
+      </mesh>
 
       {/* === Inner ring (close to center, slightly smaller) === */}
       <Prop name="tree-snow-c" position={[-1.0, 0, -0.8]} scale={0.8} />
