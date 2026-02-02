@@ -194,3 +194,9 @@ The `Skills/` folder contains skill guides for Claude that teach best practices:
 8. Lowered bloom threshold from 0.85→0.7, increased intensity 0.4→0.6
 9. Added BrightnessContrast (+0.08 contrast) and HueSaturation (+0.05 saturation)
 10. Increased DOF bokehScale from 3→3.5, N8AO quality to "medium"
+
+**REGRESSION: Scene rendered as flat grey rectangles.**
+- `<SoftShadows>` patches global `THREE.ShaderChunk` — conflicts with Environment cubemap pipeline
+- `<Lightformer>` geometry rendered as visible scene objects instead of into cubemap only
+- **Lesson**: SoftShadows and Lightformers are fragile with this drei/three.js version. Do NOT use them.
+- **Fix (Iteration 5)**: Removed SoftShadows entirely, replaced Lightformers with proven `<Environment preset="dawn" environmentIntensity={0.15}>`. Kept all other improvements (three-point lighting, reduced ambient, stronger lantern, emissive glow, color grading). Slightly bumped ambient (0.12→0.15) and hemisphere (0.15→0.2) to compensate for losing Lightformer IBL fill.

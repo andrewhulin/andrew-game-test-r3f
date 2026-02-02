@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Environment, Lightformer, ContactShadows, SoftShadows } from '@react-three/drei'
+import { Environment, ContactShadows } from '@react-three/drei'
 import * as THREE from 'three'
 
 export function Lighting() {
@@ -14,11 +14,9 @@ export function Lighting() {
 
   return (
     <>
-      <SoftShadows size={10} samples={16} focus={0.5} />
-
-      {/* Very low ambient — let key light create drama */}
-      <ambientLight intensity={0.12} color="#8aa4cc" />
-      <hemisphereLight color="#9ab4d4" groundColor="#544535" intensity={0.15} />
+      {/* Low ambient — let key light create drama */}
+      <ambientLight intensity={0.15} color="#8aa4cc" />
+      <hemisphereLight color="#9ab4d4" groundColor="#544535" intensity={0.2} />
 
       {/* KEY LIGHT: warm overcast sun */}
       <directionalLight
@@ -54,26 +52,8 @@ export function Lighting() {
         decay={2}
       />
 
-      {/* Custom IBL with Lightformers instead of preset */}
-      <Environment resolution={256} background={false}>
-        {/* Soft cool overhead — simulates overcast sky */}
-        <Lightformer
-          form="rect"
-          intensity={0.8}
-          color="#c4d4f0"
-          scale={[10, 4, 1]}
-          position={[0, 8, 0]}
-          rotation={[-Math.PI / 2, 0, 0]}
-        />
-        {/* Cool side fill */}
-        <Lightformer
-          form="rect"
-          intensity={0.3}
-          color="#8899bb"
-          scale={[5, 3, 1]}
-          position={[-6, 3, 0]}
-        />
-      </Environment>
+      {/* IBL via preset — Lightformers caused rendering artifacts */}
+      <Environment preset="dawn" background={false} environmentIntensity={0.15} />
 
       {/* Ground shadows — sized to match diorama */}
       <ContactShadows
